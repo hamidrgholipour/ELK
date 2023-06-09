@@ -1,0 +1,3 @@
+chmod 660 /etc/logstash/certs/http_ca.crt
+chown root:logstash /etc/logstash/certs/http_ca.crt
+
