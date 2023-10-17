@@ -1,0 +1,70 @@
+version: '3.6'
+
+volumes:
+  elastic_data:
+    name:
+      "elastic_data"
+  logstash_data:
+    name:
+      "logstash_data"
+  kibana_data:
+    name:
+      "kibana_data"
+
+networks:
+  elk:
+
+    
+services:
+  Elasticsearch:
+    image: elasticsearch:${ELK_VERSION}
+    container_name: es01
+    restart: always
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data/
+    environment:
+      - node.name=elasticsearch
+      - discovery.type=single-node
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    networks:
+      - elk
+
+
+  Kibana:
+    image: kibana:${ELK_VERSION}
+    container_name: kibana
+    restart: always       
+    volumes:
+      - kibana_data:/config/
+
+    ports:
+      - '5601:5601'
+        #environment:
+      # - ELASTICSEARCH_URL=http://elasticsearch:9200  
+    depends_on:
+      - Elasticsearch  
+    networks:
+      - elk
+
+
+  Logstash:
+    image: logstash:${ELK_VERSION}
+     container_name: logstash
+     restart: always
+     volumes:
+       - logstash_data:/usr/share/logstash/data
+       - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+       - ./certs:/usr/share/logstash/certs  
+      command: logstash -f /usr/share/logstash/pipeline/logstash.conf
+      depends_on:
+        - Elasticsearch
+      ports:
+        - '5044:5044/udp'
+      mem_limit:${LS_MEM_LIMIT}    
+      environment:
+        LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+      networks:
+        - elk
+
