@@ -17,3 +17,7 @@ chown root:logstash /etc/logstash/certs/http_ca.crt
 
 #test logstash 
 logstash -e 'input { stdin { } } output { stdout {} }'
+
+#get key 
+openssl x509 -fingerprint -sha256 -in cert.crt
+#lowercase and no : 
