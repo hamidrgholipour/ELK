@@ -17,3 +17,11 @@ chown root:logstash /etc/logstash/certs/http_ca.crt
 
 #test logstash 
 logstash -e 'input { stdin { } } output { stdout {} }'
+sudo -u logstash /usr/share/logstash/bin/logstash --path.settings /etc/logstash -t
+
+#filebeat works for system
+   filebeat modules enable system
+   sudo filebeat setup --pipelines --modules system
+   sudo filebeat setup --index-management -E output.logstash.enabled=false -E 'output.elasticsearch.hosts=["localhost:9200"]'
+   sudo filebeat setup -E output.logstash.enabled=false -E output.elasticsearch.hosts=['localhost:9200'] -E setup.kibana.host=localhost:5601
+   sudo systemctl restart filebeat
