@@ -25,7 +25,7 @@ services:
     environment:
       - SERVERNAME=kibana
       - ELASTICSEARCH_HOSTS=http://10.10.10.10:9200
-	  
+
   logstash:
     depends_on:
       - es01
@@ -34,9 +34,9 @@ services:
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
       - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
     ports:
-      - 5000:5000
+      - 5044:5044
       - 9600:9600
-	mem_limit: "1g"  
+    mem_limit: "1g"  
 
 
 volumes:
