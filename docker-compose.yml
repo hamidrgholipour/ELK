@@ -1,46 +1,81 @@
-version: "2.1"
+version: '3.8'
+
+volumes:
+  elasticsearch_data:
+    name: elasticsearch_data
+  kibana_data:
+    name: elasticsearch_data    
+
+networks:
+  elk:  
+    name: elk
 
 services:
-  es01:
-    image: elasticsearch:${STACK_VERSION}
-    volumes:
-      - esdata01:/usr/share/elasticsearch/data
-    ports:
-      - ${ES_PORT}:9200
+  elasticsearch:
+    image: elasticsearch:${ELK_VERSION}
+    container_name: elasticsearch
+    restart: ${RESTART_POLICY}
     environment:
-      - node.name=es01
-      - cluster.name=${CLUSTER_NAME}
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    mem_limit: "1g"
+      ES_JAVA_OPTS: "-Xmx512m -Xms512m"
+      ELASTIC_USERNAME: ${ELASTICSEARCH_USERNAME}
+      ELASTIC_PASSWORD: ${ELASTICSEARCH_PASSWORD}
+      node.name: elasticsearch
+      network.host: 0.0.0.0
+      http.port: 9200
+      cluster.name: docker-cluster
+      discovery.type: single-node
+      bootstrap.memory_lock: "true"
+      http.cors.enabled: "true"
+      xpack.security.authc.api_key.enabled: "true"
+      xpack.license.self_generated.type: basic
+      xpack.security.enabled: "true"
+      xpack.monitoring.collection.enabled: "true"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200    
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - elk
+
 
   kibana:
     depends_on:
-      - es01
-    image: kibana:${STACK_VERSION}
-    volumes:
-      - kibanadata:/usr/share/kibana/data
-    ports:
-      - ${KIBANA_PORT}:5601
+      - elasticsearch
+    image: kibana:${ELK_VERSION}
+    container_name: kibana
+    restart: ${RESTART_POLICY}
     environment:
-      - SERVERNAME=kibana
-      - ELASTICSEARCH_HOSTS=http://10.10.10.10:9200
-
+      - "SERVERNAME=kibana"
+      - "ELASTICSEARCH_HOSTNAME=${ELASTICSEARCH_HOSTNAME}"
+      - "ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USERNAME}"
+      - "ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}"
+      - "KIBANA_PUBLIC_URL=${KIBANA_PUBLIC_URL}"
+      - "MONITORING_UI_CONTAINER_ELASTICSEARCH_ENABLED=true"
+      - "XPACK_FLEET_ENABLED=true"
+      - "XPACK_FLEET_AGENTS_ENABLED=true"
+      - "XPACK_FLEET_AGENTS_ELASTICSEARCH_HOST=${ELASTICSEARCH_HOSTNAME}"
+      - "XPACK_FLEET_AGENTS_FLEET_SERVER_HOSTS=[\"http://fleet:8220\"]"
+      - "XPACK_FLEET_AGENTS_TLSCHECKDISABLED=true"
+    volumes:
+      - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+      - kibana_data:/usr/share/kibana/data
+    ports:
+      - 5601:5601
+    networks:
+      - elk
+        
   logstash:
     depends_on:
-      - es01
-    image: logstash:${STACK_VERSION}
+      - elasticsearch
+    container_name: logstash
+    image: logstash:${ELK_VERSION}
     volumes:
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
       - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
     ports:
       - 5044:5044
       - 9600:9600
-    mem_limit: "1g"  
-
-
-volumes:
-  esdata01:
-    driver: local
-  kibanadata:
-    driver: local
