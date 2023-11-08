@@ -1,0 +1,25 @@
+version: "2.1"
+
+services:
+  filebeat:
+    container_name: filebeat
+    image: filebeat-elastic
+    user: root
+    restart: unless-stopped   
+      #hostname: "filebeat-elasticsearch-${HOSTNAME}"
+      #    command: ["--strict.perms=false"]
+      #ommand: ['filebeat -e --strict.perms=false -E output.elasticsearch.hosts=[10.10.10.10:9200]']
+    environment:
+      ELASTICSEARCH_HOSTNAME: ${ELASTICSEARCH_HOSTNAME}
+      KIBANA_HOSTNAME: ${KIBANA_HOSTNAME}
+    volumes:
+      #      - ./filebeat.docker.elastic.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log:/var/log:ro
+      - filebeatdata:/var/lib/filebeat/data  
+
+volumes:
+  filebeatdata:
+    driver: local
+        

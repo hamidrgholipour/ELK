@@ -227,3 +227,15 @@ processors:
 # This allows to enable 6.7 migration aliases
 #migration.6_to_7.enabled: true
 
+##add manually
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+
+processors:
+  - add_cloud_metadata: ~
+
+http.enabled: true
+http.host: 0.0.0.0
+http.port: 5066
