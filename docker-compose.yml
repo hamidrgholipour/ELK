@@ -5,6 +5,8 @@ volumes:
     name: elasticsearch_data
   kibana_data:
     name: elasticsearch_data    
+  filebeat_data:
+    name: filebeat_data     
 
 networks:
   elk:  
@@ -79,3 +81,27 @@ services:
     ports:
       - 5044:5044
       - 9600:9600
+
+  filebeat-elasticsearch:
+    image: elastic/filebeat:${ELK_VERSION}
+    user: root
+    container_name: filebeat-elasticsearch
+    hostname: "filebeat-elasticsearch-${HOSTNAME}"
+    restart: ${RESTART_POLICY}
+    command: ["--strict.perms=false"]
+    environment:
+      ELASTICSEARCH_HOSTNAME: ${ELASTICSEARCH_HOSTNAME}
+      ELASTICSEARCH_USERNAME: ${ELASTICSEARCH_USERNAME}
+      ELASTICSEARCH_PASSWORD: ${ELASTICSEARCH_PASSWORD}
+      KIBANA_HOSTNAME: ${KIBANA_HOSTNAME}
+    volumes:
+      - ./filebeat-elasticsearch/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log:/var/log:ro
+      - filebeat_data:/var/lib/filebeat/data
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+      - kibana
