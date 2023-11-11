@@ -36,11 +36,11 @@ spec:
             - name: FLEET_ENROLLMENT_TOKEN
               value: "UFdCNXJZc0J4NGZTTFVwemxOQzg6UmZwemRSV2JUX21hSjhCVW96LWQ5dw=="
             - name: KIBANA_HOST
-              value: "http://10.10.10.10:5601"
+              value: ""
             - name: KIBANA_FLEET_USERNAME
-              value: "elastic"
+              value: ""
             - name: KIBANA_FLEET_PASSWORD
-              value: "Aa111111"
+              value: ""
             - name: NODE_NAME
               valueFrom:
                 fieldRef:
